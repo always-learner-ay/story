@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>햇님 달님 지식 챗봇 - 이미지 그래프</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rdflib/2.2.11/rdflib.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; display: flex; flex-direction: column; align-items: center; }
+        #chatbot-container { display: flex; width: 90%; max-width: 1200px; margin-top: 20px; }
+        #visualization-area { flex: 1; border: 1px solid #ddd; margin-right: 20px; display: flex; justify-content: center; align-items: center; background: linear-gradient(to bottom, #87CEEB, #ffffff); position: relative; min-height: 400px; overflow: hidden; }
+        #chat-area { flex: 1; display: flex; flex-direction: column; }
+        #chat-window { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #f9f9f9; flex-grow: 1; }
+        .bot { color: blue; margin-bottom: 5px; }
+        .user { color: green; margin-bottom: 5px; text-align: right; }
+        #input-area { display: flex; }
+        input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+
+        /* SVG 이미지 스타일 */
+        .story-element { position: absolute; cursor: pointer; transition: transform 0.3s ease; }
+        .story-element:hover { transform: scale(1.1); }
+
+        /* 해 아이콘 */
+        #sun { width: 80px; height: 80px; top: 10%; right: 15%; }
+        #sun circle { fill: gold; }
+        #sun line { stroke: orange; stroke-width: 3; }
+
+        /* 달 아이콘 */
+        #moon { width: 70px; height: 70px; top: 15%; left: 15%; }
+        #moon circle { fill: silver; }
+
+        /* 나무 아이콘 */
+        #tree { width: 100px; height: 150px; bottom: 0; left: 50%; transform: translateX(-50%); }
+        #tree rect { fill: #8B4513; } /* 나무 기둥 */
+        #tree circle { fill: forestgreen; } /* 나뭇잎 */
+
+        /* 집 아이콘 */
+        #house { width: 100px; height: 100px; bottom: 50px; left: 20%; }
+        #house rect { fill: #A0522D; } /* 벽 */
+        #house polygon { fill: #8B0000; } /* 지붕 */
+    </style>
+</head>
+<body>
+
+    <h2>🌞 햇님 달님 지식 챗봇</h2>
+
+    <div id="chatbot-container">
+        <div id="visualization-area">
+            <svg id="sun" class="story-element" viewBox="0 0 100 100" onclick="askChatbotWithKeyword('해와 달')">
+                <circle cx="50" cy="50" r="40" />
+                <line x1="50" y1="0" x2="50" y2="15" />
+                <line x1="15" y1="15" x2="0" y2="0" />
+                <line x1="0" y1="50" x2="15" y2="50" />
+                <line x1="15" y1="85" x2="0" y2="100" />
+                <line x1="50" y1="85" x2="50" y2="100" />
+                <line x1="85" y1="85" x2="100" y2="100" />
+                <line x1="85" y1="50" x2="100" y2="50" />
+                <line x1="85" y1="15" x2="100" y2="0" />
+            </svg>
+
+            <svg id="moon" class="story-element" viewBox="0 0 100 100" onclick="askChatbotWithKeyword('해와 달')">
+                <circle cx="50" cy="50" r="40" />
+                <circle cx="65" cy="40" r="35" fill="#f9f9f9" />
+            </svg>
+            
+            <svg id="tree" class="story-element" viewBox="0 0 100 150" onclick="askChatbotWithKeyword('나무')">
+                <rect x="40" y="50" width="20" height="100" />
+                <circle cx="50" cy="50" r="40" />
+                <circle cx="30" cy="30" r="30" />
+                <circle cx="70" cy="30" r="30" />
+            </svg>
+
+            <svg id="house" class="story-element" viewBox="0 0 100 100" onclick="askChatbotWithKeyword('배경')">
+                <rect x="10" y="40" width="80" height="50" />
+                <polygon points="50,10 10,40 90,40" />
+            </svg>
+        </div>
+
+        <div id="chat-area">
+            <div id="chat-window">
+                <div class="bot">안녕하세요! '햇님 달님' 동화에 대해 무엇이든 물어보세요. (예: 인물, 배경, 교훈)</div>
+            </div>
+            <div id="input-area">
+                <input type="text" id="userInput" placeholder="질문을 입력하세요..." onkeypress="if(event.keyCode===13) askChatbot()">
+                <button onclick="askChatbot()">질문하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 데이터 정의 (Turtle 형식) - 더 구체적인 정보 추가
+        const turtleData = `
+            @prefix ex: <http://example.org/folktale/> .
+            @prefix schema: <https://schema.org/> .
+            
+            ex:SunAndMoon
+                schema:name "햇님 달님" ;
+                ex:characters "어머니, 오누이(오빠와 여동생), 그리고 호랑이" ;
+                ex:setting "옛날 옛적 깊은 산속 외딴집" ;
+                ex:lesson "어려움 속에서도 지혜를 발휘하면 희망을 찾을 수 있으며, 권선징악의 교훈을 담고 있습니다." ;
+                ex:plot "떡을 팔러 간 어머니가 호랑이에게 잡아먹히고, 호랑이가 어머니로 변장해 오누이를 찾아옵니다. 오누이는 이를 눈치채고 나무 위로 도망쳐 하늘에 도움을 청합니다. 하늘에서 내려온 튼튼한 동아줄을 타고 하늘로 올라가 오빠는 달이 되고 여동생은 햇님이 됩니다." ;
+                ex:skyElements "해와 달" ;
+                ex:escapeMeans "나무와 동아줄" .
+        `;
+
+        // 2. RDF 스토어 설정 및 데이터 파싱
+        const store = $rdf.graph();
+        const contentType = 'text/turtle';
+        const baseUrl = "http://example.org/";
+        
+        $rdf.parse(turtleData, store, baseUrl, contentType);
+
+        // 3. 챗봇 엔진 함수
+        function askChatbot() {
+            const input = document.getElementById('userInput').value;
+            // 빈 입력 방지
+            if (!input.trim()) return; 
+
+            displayMessage('user', input);
+            processQuestion(input);
+            document.getElementById('userInput').value = '';
+        }
+
+        // 이미지 클릭 시 챗봇 질문을 트리거하는 함수
+        function askChatbotWithKeyword(keyword) {
+            displayMessage('user', keyword + "에 대해 알려줘");
+            processQuestion(keyword);
+        }
+
+        // 실제 질문 처리 로직
+        function processQuestion(query) {
+            const subject = $rdf.sym("http://example.org/folktale/SunAndMoon");
+            let response = "죄송해요, 그 정보는 아직 데이터에서 찾을 수 없습니다. '인물', '배경', '교훈', '줄거리', '해와 달', '나무' 등에 대해 물어보세요!";
+
+            const lowerQuery = query.toLowerCase();
+
+            if (lowerQuery.includes("인물") || lowerQuery.includes("누가")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/characters"));
+                if (result) response = `등장인물은 ${result.value} 입니다.`;
+            } else if (lowerQuery.includes("배경") || lowerQuery.includes("어디")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/setting"));
+                if (result) response = `동화의 배경은 ${result.value} 입니다.`;
+            } else if (lowerQuery.includes("교훈")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/lesson"));
+                if (result) response = `이 동화의 교훈은 ${result.value} 입니다.`;
+            } else if (lowerQuery.includes("줄거리") || lowerQuery.includes("사건") || lowerQuery.includes("내용")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/plot"));
+                if (result) response = `주요 줄거리는 ${result.value} 입니다.`;
+            } else if (lowerQuery.includes("해와 달") || lowerQuery.includes("햇님 달님")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/skyElements"));
+                if (result) response = `오누이가 하늘로 올라가 ${result.value}이(가) 되었습니다.`;
+            } else if (lowerQuery.includes("나무") || lowerQuery.includes("어떻게 도망")) {
+                const result = store.any(subject, $rdf.sym("http://example.org/folktale/escapeMeans"));
+                if (result) response = `오누이는 ${result.value}를 이용하여 위기를 모면했습니다.`;
+            }
+
+            displayMessage('bot', response);
+        }
+
+        // 메시지를 채팅창에 표시하는 유틸리티 함수
+        function displayMessage(sender, message) {
+            const chatWindow = document.getElementById('chat-window');
+            chatWindow.innerHTML += `<div class="${sender}">${sender === 'user' ? '나' : '봇'}: ${message}</div>`;
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    </script>
+</body>
+</html>

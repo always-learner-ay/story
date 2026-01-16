@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folktale AI - RDF & Chatbot</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rdflib/2.2.11/rdflib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #a855f7;
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --text-color: #e2e8f0;
+            --accent-color: #38bdf8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 20%);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 80px); /* Adjust based on header height */
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Left Panel - Chat */
+        .chat-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+        }
+
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        button.send-btn {
+            padding: 0 20px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button.send-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Right Panel - RDF Data */
+        .data-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .rdf-editor-container {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        textarea#rdf-input {
+            flex: 1;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            color: #a5b4fc;
+            border: none;
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        /* Visual Elements Area */
+        .visual-stage {
+            height: 200px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .story-element {
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+        
+        .story-element:hover {
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌞 Folktale Knowledge Graph</h1>
+        <div style="font-size: 0.9rem; opacity: 0.7;">RDF Turtle & Chatbot Interface</div>
+    </header>
+
+    <div class="container">
+        <!-- Chat Panel -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                Chat Assistant
+            </div>
+            <div class="messages-area" id="messages">
+                <div class="message bot">
+                    안녕하세요! 우측의 RDF 데이터를 기반으로 답변해드립니다. '햇님 달님' 이야기에 대해 궁금한 점을 물어보세요. (예: 인물, 줄거리, 교훈)
+                </div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="질문을 입력하세요..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <!-- Data & Visual Panel -->
+        <div class="data-panel">
+            
+            <!-- Visual Stage (Interactive) -->
+            <div class="visual-stage">
+                <!-- Simple SVG Graphics tailored to the theme but kept identifiable -->
+                <svg id="sun" class="story-element" width="80" height="80" viewBox="0 0 100 100" style="margin: 0 20px;" onclick="triggerAsk('해와 달')">
+                    <circle cx="50" cy="50" r="40" fill="#fbbf24" stroke="#d97706" stroke-width="2"/>
+                    <g stroke="#fbbf24" stroke-width="2">
+                        <line x1="50" y1="0" x2="50" y2="15" />
+                        <line x1="50" y1="85" x2="50" y2="100" />
+                        <line x1="0" y1="50" x2="15" y2="50" />
+                        <line x1="85" y1="50" x2="100" y2="50" />
+                    </g>
+                </svg>
+
+                <svg id="moon" class="story-element" width="70" height="70" viewBox="0 0 100 100" style="margin: 0 20px;" onclick="triggerAsk('해와 달')">
+                    <circle cx="50" cy="50" r="40" fill="#e2e8f0" />
+                    <circle cx="65" cy="40" r="35" fill="#334155" opacity="0.1" /> <!-- Crater illusion -->
+                </svg>
+
+                <svg id="tree" class="story-element" width="60" height="90" viewBox="0 0 100 150" style="margin: 0 20px;" onclick="triggerAsk('어떻게 도망쳤어?')">
+                    <rect x="40" y="80" width="20" height="70" fill="#78350f" />
+                    <circle cx="50" cy="50" r="40" fill="#15803d" />
+                    <circle cx="30" cy="40" r="25" fill="#166534" />
+                    <circle cx="70" cy="40" r="25" fill="#166534" />
+                </svg>
+            </div>
+
+            <!-- RDF Editor -->
+            <div class="rdf-editor-container">
+                <div class="panel-header">
+                    <span>RDF Source (Turtle)</span>
+                    <button class="action-btn" onclick="reloadRDF()">Update Knowledge</button>
+                </div>
+                <textarea id="rdf-input" spellcheck="false"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial Data
+        const initialTurtleData = `
+@prefix ex: <http://example.org/folktale/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# 이야기 메타데이터
+ex:SunAndMoon
+    rdf:type schema:CreativeWork ;
+    schema:name "햇님 달님" ;
+    schema:genre "한국 전래 동화" .
+
+# 1. 인물 (Characters)
+ex:Characters
+    ex:mother "어머니" ;
+    ex:brother "오누이(오빠)" ;
+    ex:sister "오누이(여동생)" ;
+    ex:villain "호랑이" .
+
+# 2. 배경 (Setting)
+ex:SunAndMoon
+    ex:settingPlace "깊은 산속 외딴집" ;
+    ex:settingTime "옛날 옛적" .
+
+# 3. 주요 내용 (Plot/Lesson)
+ex:SunAndMoon
+    ex:lesson "권선징악: 착한 사람은 복을 받고 악한 사람은 벌을 받습니다." ;
+    ex:plot "어머니를 잡아먹은 호랑이가 오누이까지 해치려 했으나, 오누이는 지혜롭게 나무 위로 피신했습니다. 하느님이 내려준 동아줄을 타고 하늘로 올라가 해와 달이 되었고, 호랑이는 썩은 줄을 잡고 떨어졌습니다." ;
+    ex:skyElements "해(여동생)와 달(오빠)" ;
+    ex:escapeMeans "동아줄과 나무" .
+`;
+
+        // Initialize
+        document.getElementById('rdf-input').value = initialTurtleData.trim();
+        let store = $rdf.graph();
+        const baseUrl = "http://example.org/";
+        const contentType = 'text/turtle';
+
+        function reloadRDF() {
+            try {
+                const newData = document.getElementById('rdf-input').value;
+                store = $rdf.graph(); // Reset store
+                $rdf.parse(newData, store, baseUrl, contentType);
+                
+                // Visual feedback
+                const btn = document.querySelector('.action-btn');
+                const originalText = btn.innerText;
+                btn.innerText = "Updated!";
+                btn.style.background = "#22c55e"; // green
+                btn.style.color = "white";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "";
+                    btn.style.color = "";
+                }, 1500);
+
+                addMessage('bot', "지식 베이스가 업데이트 되었습니다! 새로운 내용을 물어보세요.");
+
+            } catch (e) {
+                alert("RDF 파싱 오류: " + e.message);
+            }
+        }
+
+        // Parse initially
+        try {
+            $rdf.parse(initialTurtleData, store, baseUrl, contentType);
+        } catch (e) {
+            console.error(e);
+        }
+
+        // Chat Functions
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            addMessage('user', text);
+            input.value = '';
+            
+            // Simulate thinking delay for nicer UX
+            setTimeout(() => {
+                processQuery(text);
+            }, 500);
+        }
+
+        function triggerAsk(keyword) {
+            addMessage('user', keyword + "에 대해 알려줘");
+            setTimeout(() => {
+                processQuery(keyword);
+            }, 500);
+        }
+
+        function addMessage(type, text) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerText = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function processQuery(text) {
+            const subject = $rdf.sym("http://example.org/folktale/SunAndMoon");
+            const lowerText = text.toLowerCase();
+            let answer = "죄송해요, 입력하신 내용에 대한 정보를 찾을 수 없습니다.";
+
+            // Helper to query store
+            const val = (predicateURI) => {
+                const node = store.any(subject, $rdf.sym(predicateURI));
+                return node ? node.value : null;
+            };
+            
+            // Logic based on Keywords mapping to RDF predicates
+            // Note: This logic depends on the specific RDF structure defined in the editor.
+            
+            if (lowerText.includes("인물") || lowerText.includes("누구")) {
+                // For characters, we check a different subject node or just know the URI
+                const charSubject = $rdf.sym("http://example.org/folktale/Characters");
+                // Simple iteration or specific checks. Let's just hardcode a few lookups for specific chars if users ask generically, 
+                // or return a summary if we can construct it. But rdflib 'any' is singular.
+                // Let's search known character properties.
+                const mother = store.any(charSubject, $rdf.sym("http://example.org/folktale/mother"));
+                const villain = store.any(charSubject, $rdf.sym("http://example.org/folktale/villain"));
+                
+                if (mother || villain) {
+                    answer = `이 이야기에는 ${mother ? mother.value : ''}, ${villain ? villain.value : ''} 등이 등장합니다.`;
+                }
+            }
+            else if (lowerText.includes("줄거리") || lowerText.includes("내용") || lowerText.includes("사건")) {
+                const res = val("http://example.org/folktale/plot");
+                if (res) answer = res;
+            }
+            else if (lowerText.includes("교훈")) {
+                const res = val("http://example.org/folktale/lesson");
+                if (res) answer = res;
+            }
+            else if (lowerText.includes("배경") || lowerText.includes("어디")) {
+                const res = val("http://example.org/folktale/settingPlace");
+                if (res) answer = `배경은 ${res} 입니다.`;
+            }
+            else if (lowerText.includes("해와 달") || lowerText.includes("결말")) {
+                const res = val("http://example.org/folktale/skyElements");
+                if (res) answer = `결국 남매는 하늘로 올라가 ${res}이 되었습니다.`;
+            }
+            else if (lowerText.includes("도망") || lowerText.includes("피신")) {
+                const res = val("http://example.org/folktale/escapeMeans");
+                if (res) answer = `그들은 ${res}을 이용해 도망쳤습니다.`;
+            }
+            
+            addMessage('bot', answer);
+        }
+    </script>
+</body>
+</html>

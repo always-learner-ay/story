@@ -1,0 +1,33 @@
+@prefix ex: <http://example.org/folktale/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# 동화 제목 정의
+ex:SunAndMoon
+    rdf:type schema:CreativeWork ;
+    schema:name "햇님 달님" ;
+    schema:genre "한국 전래 동화" .
+
+# 1. 인물 (Characters)
+ex:Characters
+    ex:mother "어머니" ;
+    ex:brother "오누이(오빠)" ;
+    ex:sister "오누이(여동생)" ;
+    ex:villain "호랑이" .
+
+# 2. 배경 (Setting)
+ex:SunAndMoon
+    ex:settingPlace "깊은 산속 외딴집" ;
+    ex:settingTime "옛날 옛적" .
+
+# 3. 주요 사건 (Events)
+ex:Events
+    ex:step1 "호랑이가 떡을 파는 어머니를 잡아먹음" ;
+    ex:step2 "호랑이가 어머니로 변장하여 오누이의 집으로 찾아감" ;
+    ex:step3 "오누이가 나무 위로 도망쳐 하늘에 기도함" ;
+    ex:step4 "하늘에서 내려온 동원줄을 타고 올라가 해와 달이 됨" .
+
+# 4. 교훈 (Lesson)
+ex:SunAndMoon
+    ex:lesson "권선징악(악한 행동은 벌을 받고, 위기 속에서도 지혜를 발휘하면 구원을 얻는다)" .
