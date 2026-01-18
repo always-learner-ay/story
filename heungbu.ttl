@@ -1,0 +1,32 @@
+@prefix ex: <http://example.org/folktale/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# 동화 '흥부와 놀부' 전체 구조
+ex:HeungbuNolbu
+    rdf:type schema:CreativeWork ;
+    schema:name "흥부와 놀부" ;
+    schema:genre "한국 전래 동화" ;
+
+    # 1. 인물 (Characters)
+    ex:character ex:Heungbu, ex:Nolbu, ex:HeungbuWife, ex:Swallow ;
+
+    # 2. 사건 (Events)
+    ex:event [
+        ex:step1 "욕심 많은 형 놀부가 착한 동생 흥부를 집에서 쫓아냄" ;
+        ex:step2 "흥부가 다리가 부러진 제비를 정성껏 치료해 줌" ;
+        ex:step3 "제비가 가져다준 박씨를 심어 흥부는 보물을 얻고 부자가 됨" ;
+        ex:step4 "소문을 들은 놀부가 일부러 제비 다리를 부러뜨리고 박씨를 심음" ;
+        ex:step5 "놀부의 박에서는 도깨비와 오물이 나와 벌을 받고 망함" ;
+        ex:step6 "흥부가 형 놀부를 용서하고 함께 화목하게 삶"
+    ] ;
+
+    # 3. 교훈 (Lesson)
+    ex:lesson "권선징악과 형제애: 착한 일을 하면 복을 받고, 욕심을 부리면 벌을 받으며 형제간에 우애가 깊어야 한다." .
+
+# 상세 인물 정의
+ex:Heungbu rdfs:label "흥부 (착한 동생)" .
+ex:Nolbu rdfs:label "놀부 (욕심 많은 형)" .
+ex:HeungbuWife rdfs:label "흥부 아내" .
+ex:Swallow rdfs:label "제비 (보은의 상징)" .

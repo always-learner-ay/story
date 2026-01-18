@@ -1,0 +1,30 @@
+@prefix ex: <http://example.org/folktale/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# 동화 '콩쥐 팥쥐' 전체 구조
+ex:KongjwiPatjwi
+    rdf:type schema:CreativeWork ;
+    schema:name "콩쥐 팥쥐" ;
+
+    # 1. 인물 (Characters)
+    ex:character ex:Kongjwi, ex:Patjwi, ex:Stepmother, ex:Helpers, ex:Governor ;
+
+    # 2. 사건 (Events)
+    ex:event [
+        ex:step1 "새어머니와 팥쥐가 콩쥐에게 감당하기 힘든 집안일을 시킴" ;
+        ex:step2 "두꺼비, 소, 새 등 동물 조력자들이 나타나 일을 도와줌" ;
+        ex:step3 "선녀의 도움으로 옷을 갖춰 입고 잔치에 가다 신발을 잃어버림" ;
+        ex:step4 "신발의 주인임을 확인한 감사(사또)와 콩쥐가 결혼함"
+    ] ;
+
+    # 3. 교훈 (Lesson)
+    ex:lesson "권선징악: 착한 마음씨를 가진 사람은 결국 복을 받고, 남을 괴롭히는 사람은 벌을 받는다." .
+
+# 상세 인물 정의
+ex:Kongjwi rdfs:label "콩쥐 (주인공)" .
+ex:Patjwi rdfs:label "팥쥐 (악역)" .
+ex:Stepmother rdfs:label "새어머니" .
+ex:Helpers rdfs:label "동물 조력자 및 선녀" .
+ex:Governor rdfs:label "감사(사또)" .

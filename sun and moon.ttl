@@ -1,0 +1,30 @@
+@prefix ex: <http://example.org/folktale/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# 동화 '햇님 달님'의 전체 구조
+ex:SunAndMoon
+    rdf:type schema:CreativeWork ;
+    schema:name "햇님 달님" ;
+
+    # 1. 인물 (Characters)
+    ex:character ex:Mother, ex:Brother, ex:Sister, ex:Tiger ;
+
+    # 2. 사건 (Events/Plot)
+    ex:event [
+        ex:step1 "호랑이가 고개를 넘던 어머니를 잡아먹음" ;
+        ex:step2 "호랑이가 어머니로 변장하여 오누이를 찾아옴" ;
+        ex:step3 "오누이가 지혜를 발휘하여 나무 위로 도망침" ;
+        ex:step4 "오누이는 새 동아줄을 타고 하늘로 올라가 해와 달이 됨" ;
+        ex:step5 "썩은 동아줄을 탄 호랑이는 수수밭으로 떨어짐"
+    ] ;
+
+    # 3. 교훈 (Lesson)
+    ex:lesson "권선징악: 악한 자는 벌을 받고, 위기 상황에서 지혜를 발휘하면 구원을 얻는다." .
+
+# 상세 인물 정의
+ex:Mother rdfs:label "어머니" .
+ex:Brother rdfs:label "오빠(달님)" .
+ex:Sister rdfs:label "여동생(햇님)" .
+ex:Tiger rdfs:label "호랑이" ; rdf:type ex:Villain .
